@@ -1,0 +1,55 @@
+# ===== SANAL ORTAM =====
+venv/
+
+# ===== VERITABANI =====
+app_data.db
+*.db
+
+# ===== LOG DOSYALARI =====
+logs/
+streamlit.log
+*.log
+
+# ===== CIKTI DOSYALARI =====
+outputs/
+*.xlsx
+
+# ===== PYTHON CACHE =====
+__pycache__/
+*.pyc
+*.pyo
+
+# ===== API ANAHTARLARI =====
+.api_key
+.api_keys.json
+.env
+
+# ===== ESKI / KULLANILMAYAN DOSYALAR =====
+# Eski app versiyonu (app.py kullaniliyor)
+app_new.py
+# Bozuk backup dosyalari
+ui/pages/functions.py.backup
+ui/pages/functions_broken.py
+# Eski v0.1 modulleri (yeni ai/ altinda)
+ai_engine.py
+prompt_engine.py
+database.py
+# Kullanici notu (kod degil)
+sls
+
+# ===== DOKUMANTASYON (CLAUDE.md haric) =====
+# CLAUDE.md zaten proje talimati olarak yukleniyor, digerleri gereksiz context
+README.md
+CHANGELOG.md
+GELISTIRME_PLANI.md
+YENI_MIMARI_TASARIMI.md
+PYDANTIC_PYTHON39_HATASI.md
+prompt_engineering_strategies.md
+api_entegrasyon.md
+
+# ===== TEST VERISI =====
+test_data/
+test_demo.py
+
+# ===== IDE =====
+.vscode/

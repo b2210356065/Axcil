@@ -1,0 +1,40 @@
+# API keys ve hassas dosyalar
+.api_key
+.api_keys.json
+.env
+
+# Veritabanı
+app_data.db
+*.db
+
+# Çıktılar ve loglar
+outputs/
+logs/
+*.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Test data
+test_data/

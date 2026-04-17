@@ -1,0 +1,22 @@
+# Web Framework
+streamlit>=1.30.0
+
+# Excel İşleme
+openpyxl>=3.1.0
+
+# AI Modelleri
+openai>=1.0.0              # GPT-5 (OpenAI v1.x)
+anthropic>=0.18.0          # Claude 4.5 Sonnet
+google-generativeai>=0.3.0 # Gemini 2.5 Flash
+
+# Veri Doğrulama
+# NOT: pydantic 2.12+ Python 3.9 ile uyumsuz (model_json_schema hatası).
+# Python 3.9 kullanıyorsanız pydantic<2.12 zorunlu.
+pydantic>=2.5.0,<2.12.0
+
+# Görsel İşleme
+pillow>=10.0.0
+PyMuPDF>=1.23.0           # PDF işleme (fitz)
+
+# Yardımcı
+python-dotenv>=1.0.0      # API anahtarları için
