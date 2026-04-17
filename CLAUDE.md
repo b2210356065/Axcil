@@ -21,6 +21,11 @@ Excel'e veri girerken yaşanan tüm manuel süreçleri, hata kaynaklarını ve a
 - 7 kullanıcı aracı tasarımı
 - Gelişmiş prompt mühendisliği
 
+## 📚 Ek Dokümantasyon
+
+### Sorun Giderme Kılavuzları
+- **[Gemini API Troubleshooting](docs/gemini-api-troubleshooting.md)** — Gemini API sorunları ve çözümleri (429, 404, timeout hataları)
+
 ---
 
 # BÖLÜM 1: GERÇEK KULLANICI SENARYOLARI VE SORUN ANALİZİ

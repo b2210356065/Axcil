@@ -70,7 +70,7 @@ class APIConfig(BaseModel):
     gemini_key: str = ""
     claude_key: str = ""
     openai_key: str = ""
-    gemini_model: str = "models/gemini-3.1-flash-live-preview"
+    gemini_model: str = "models/gemini-1.5-flash"
     claude_model: str = "claude-sonnet-4-20250514"
     openai_model: str = "gpt-4o-mini"
     confidence_high: float = 0.90

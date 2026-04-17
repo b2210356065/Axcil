@@ -46,17 +46,9 @@ class GeminiAdapter(BaseModelAdapter):
         if self.model_name and not self.model_name.startswith("models/"):
             self.model_name = f"models/{self.model_name}"
 
-        # Kararlı model: gemini-2.0-flash. Diğer tüm deneysel/preview sürümleri yönlendir.
-        import re as _re
-        model_base = self.model_name.replace("models/", "")
-        # Kararlı modeller: gemini-2.0-flash, gemini-2.0-flash-lite vb.
-        # Deneysel/preview/bilinmeyen: 2.5-*, 3.0-*, 3.1-*, *-preview, *-live-preview, *-exp
-        is_unstable = bool(_re.search(
-            r'(2\.5|3\.\d|preview|experimental|exp|live)',
-            model_base, _re.IGNORECASE
-        ))
-        if is_unstable:
-            self.model_name = "models/gemini-2.0-flash"
+        # OTOMATİK REDIRECT KALDIRILDI - Kullanıcı ne seçerse o kullanılır
+        # Model adı aynen kullanılacak, redirect yok
+        print(f"[GEMINI ADAPTER] Kullanılan model: {self.model_name}")
 
     def _clean_schema_for_gemini(self, schema: Any) -> Any:
         """Gemini API'nin kabul etmediği Pydantic alanlarını temizler ve type'ları düzeltir."""
@@ -213,7 +205,7 @@ class GeminiAdapter(BaseModelAdapter):
                 "parts_types": [list(p.keys()) for p in parts],
             }, url=url_masked)
 
-            response = self._post_with_retry(real_url, json_data=request_body, timeout=60, dbg=dbg)
+            response = self._post_with_retry(real_url, json_data=request_body, timeout=180, dbg=dbg)
 
             # Hata durumunda detaylı mesajı göster
             if not response.ok:
@@ -339,7 +331,7 @@ Python kodu üret (sadece kod, açıklama yok):
             url = f"https://generativelanguage.googleapis.com/v1beta/{self.model_name}:generateContent?key={self.api_key}"
             dbg.log_api_request(request_body={"prompt_length": len(full_prompt)})
 
-            response = self._post_with_retry(url, json_data=request_body, timeout=60, dbg=dbg)
+            response = self._post_with_retry(url, json_data=request_body, timeout=180, dbg=dbg)
 
             if not response.ok:
                 error_detail = response.text
@@ -402,7 +394,7 @@ Python kodu üret (sadece kod, açıklama yok):
             }
 
             url = f"https://generativelanguage.googleapis.com/v1beta/{self.model_name}:generateContent?key={self.api_key}"
-            response = self._post_with_retry(url, json_data=request_body, timeout=120, dbg=dbg)
+            response = self._post_with_retry(url, json_data=request_body, timeout=180, dbg=dbg)
 
             if not response.ok:
                 error_detail = response.text
@@ -497,7 +489,7 @@ Her alan için doğrulama yap ve ValidationResult formatında döndür.
                 "prompt_length": len(prompt),
             })
 
-            response = self._post_with_retry(url, json_data=request_body, timeout=60, dbg=dbg)
+            response = self._post_with_retry(url, json_data=request_body, timeout=180, dbg=dbg)
 
             if not response.ok:
                 error_detail = response.text
@@ -594,7 +586,7 @@ En uygun kategoriyi seç ve güven skorunu belirt.
             }
 
             url = f"https://generativelanguage.googleapis.com/v1beta/{self.model_name}:generateContent?key={self.api_key}"
-            response = self._post_with_retry(url, json_data=request_body, timeout=60, dbg=dbg)
+            response = self._post_with_retry(url, json_data=request_body, timeout=180, dbg=dbg)
 
             if not response.ok:
                 error_detail = response.text

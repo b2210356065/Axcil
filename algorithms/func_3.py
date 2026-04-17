@@ -1,358 +1,135 @@
-def create_excel(data: dict, output_path: str) -> None:
+import openpyxl
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+
+def create_excel(data: dict = None, output_path: str = 'Oda_Yerlesim_Plani.xlsx') -> str:
     """
-    Turizm ajansı oda yerleştirme sistemi - 1000 kişilik grup, 230 oda
-    data parametresi: Müşteri verisi (boş veya None ise mock veri üretilir)
+    Turizm ajansı oda yerleştirme otomasyonu.
+    1000 kişilik grup, 230 oda (640 kapasite) yönetimi.
     """
-    import openpyxl
-    from openpyxl.styles import Font, Alignment, PatternFill
-    
-    # ========================================================================
-    # AŞAMA 1: ODA ENVANTERİ OLUŞTURMA
-    # ========================================================================
-    # 100x2kişilik(200) + 80x3kişilik(240) + 50x4kişilik(200) = 640 kişi
+    # 1. ODA ENVANTERİ TANIMLAMA
+    # 2'lik: 100 (101-200), 3'lük: 80 (201-280), 4'lük: 50 (281-330)
     rooms = []
-    room_no = 101
-    
-    # 2 Kişilik Odalar (100 adet)
-    for _ in range(100):
-        rooms.append({
-            'no': room_no,
-            'tip': '2 Kişilik',
-            'kapasite': 2,
-            'manzara': 'Standart',
-            'ozel_not': None,
-            'misafirler': []
-        })
-        room_no = room_no + 1
-    
-    # 3 Kişilik Odalar (80 adet)
-    for _ in range(80):
-        rooms.append({
-            'no': room_no,
-            'tip': '3 Kişilik',
-            'kapasite': 3,
-            'manzara': 'Standart',
-            'ozel_not': None,
-            'misafirler': []
-        })
-        room_no = room_no + 1
-    
-    # 4 Kişilik Odalar (50 adet)
-    for _ in range(50):
-        rooms.append({
-            'no': room_no,
-            'tip': '4 Kişilik',
-            'kapasite': 4,
-            'manzara': 'Standart',
-            'ozel_not': None,
-            'misafirler': []
-        })
-        room_no = room_no + 1
-    
-    # ========================================================================
-    # AŞAMA 2: MİSAFİR VERİSİ OLUŞTURMA
-    # ========================================================================
+    for i in range(101, 201): rooms.append({'no': i, 'tip': '2 Kişilik', 'kap': 2, 'misf': [], 'manzara': 'Standart', 'not': ''})
+    for i in range(201, 281): rooms.append({'no': i, 'tip': '3 Kişilik', 'kap': 3, 'misf': [], 'manzara': 'Standart', 'not': ''})
+    for i in range(281, 331): rooms.append({'no': i, 'tip': '4 Kişilik', 'kap': 4, 'misf': [], 'manzara': 'Standart', 'not': ''})
+
+    # 2. VERİ KONTROLÜ VE MOCK VERİ ÜRETİMİ
     guests = []
-    
-    # data boş veya None kontrolü
-    data_list = None
-    if data is not None:
-        if isinstance(data, dict):
-            if 'guests' in data:
-                data_list = data['guests']
-            elif 'misafirler' in data:
-                data_list = data['misafirler']
-            elif len(data) > 0:
-                data_list = None
-        elif isinstance(data, list):
-            data_list = data
-    
-    if data_list is None or len(data_list) == 0:
-        # Mock veri üret (1000 kişi)
-        
-        # SENARYO 1: 4 Kişilik Aile - Farklı Cinsiyetler (İlişki='Aile' ZORUNLU)
-        guests.append({'isim': 'Mehmet', 'soyisim': 'YILMAZ', 'tc': '12345678901', 'cinsiyet': 'E', 'yas': 45, 'grup_id': 'GRUP-1', 'iliski': 'Aile', 'tercih': '4 Kişilik', 'ozel': None})
-        guests.append({'isim': 'Ayşe', 'soyisim': 'YILMAZ', 'tc': '12345678902', 'cinsiyet': 'K', 'yas': 42, 'grup_id': 'GRUP-1', 'iliski': 'Aile', 'tercih': '4 Kişilik', 'ozel': None})
-        guests.append({'isim': 'Can', 'soyisim': 'YILMAZ', 'tc': '12345678903', 'cinsiyet': 'E', 'yas': 18, 'grup_id': 'GRUP-1', 'iliski': 'Aile', 'tercih': '4 Kişilik', 'ozel': None})
-        guests.append({'isim': 'Elif', 'soyisim': 'YILMAZ', 'tc': '12345678904', 'cinsiyet': 'K', 'yas': 15, 'grup_id': 'GRUP-1', 'iliski': 'Aile', 'tercih': '4 Kişilik', 'ozel': None})
-        
-        # SENARYO 2: Arkadaş Grubu - Cinsiyet Uyumsuzluğu (2E+2K AYRI odalara)
-        guests.append({'isim': 'Ahmet', 'soyisim': 'DEMİR', 'tc': '23456789001', 'cinsiyet': 'E', 'yas': 30, 'grup_id': 'GRUP-5', 'iliski': 'Arkadaş', 'tercih': '4 Kişilik', 'ozel': None})
-        guests.append({'isim': 'Zeynep', 'soyisim': 'KAYA', 'tc': '23456789002', 'cinsiyet': 'K', 'yas': 28, 'grup_id': 'GRUP-5', 'iliski': 'Arkadaş', 'tercih': '4 Kişilik', 'ozel': None})
-        guests.append({'isim': 'Burak', 'soyisim': 'ÇELİK', 'tc': '23456789003', 'cinsiyet': 'E', 'yas': 29, 'grup_id': 'GRUP-5', 'iliski': 'Arkadaş', 'tercih': '4 Kişilik', 'ozel': None})
-        guests.append({'isim': 'Selin', 'soyisim': 'AKIN', 'tc': '23456789004', 'cinsiyet': 'K', 'yas': 27, 'grup_id': 'GRUP-5', 'iliski': 'Arkadaş', 'tercih': '4 Kişilik', 'ozel': None})
-        
-        # SENARYO 3: 5 Kişilik Grup - Dağıtılacak (4+1 veya 3+2)
-        guests.append({'isim': 'Ali', 'soyisim': 'VURAL', 'tc': '34567890001', 'cinsiyet': 'E', 'yas': 25, 'grup_id': 'GRUP-10', 'iliski': 'Arkadaş', 'tercih': '4 Kişilik', 'ozel': None})
-        guests.append({'isim': 'Veli', 'soyisim': 'ÖZKAN', 'tc': '34567890002', 'cinsiyet': 'E', 'yas': 26, 'grup_id': 'GRUP-10', 'iliski': 'Arkadaş', 'tercih': '4 Kişilik', 'ozel': None})
-        guests.append({'isim': 'Hasan', 'soyisim': 'KURT', 'tc': '34567890003', 'cinsiyet': 'E', 'yas': 27, 'grup_id': 'GRUP-10', 'iliski': 'Arkadaş', 'tercih': '4 Kişilik', 'ozel': None})
-        guests.append({'isim': 'Hüseyin', 'soyisim': 'ASLAN', 'tc': '34567890004', 'cinsiyet': 'E', 'yas': 28, 'grup_id': 'GRUP-10', 'iliski': 'Arkadaş', 'tercih': '4 Kişilik', 'ozel': None})
-        guests.append({'isim': 'Murat', 'soyisim': 'YILDIZ', 'tc': '34567890005', 'cinsiyet': 'E', 'yas': 29, 'grup_id': 'GRUP-10', 'iliski': 'Arkadaş', 'tercih': '4 Kişilik', 'ozel': None})
-        
-        # SENARYO 4: Tek Kişi Eşleştirme (2K aynı odada, 1E ayrı)
-        guests.append({'isim': 'Fatma', 'soyisim': 'ÖZGÜR', 'tc': '45678900001', 'cinsiyet': 'K', 'yas': 35, 'grup_id': 'GRUP-20', 'iliski': 'Arkadaş', 'tercih': '2 Kişilik', 'ozel': None})
-        guests.append({'isim': 'Ayşegül', 'soyisim': 'TOPRAK', 'tc': '45678900002', 'cinsiyet': 'K', 'yas': 40, 'grup_id': 'GRUP-21', 'iliski': 'Arkadaş', 'tercih': '2 Kişilik', 'ozel': None})
-        guests.append({'isim': 'Kemal', 'soyisim': 'AKAR', 'tc': '45678900003', 'cinsiyet': 'E', 'yas': 38, 'grup_id': 'GRUP-22', 'iliski': 'Arkadaş', 'tercih': '2 Kişilik', 'ozel': None})
-        
-        # SENARYO 5: Özel İstek - Deniz + Engelli (Evli çift)
-        guests.append({'isim': 'Cem', 'soyisim': 'GÜNEŞ', 'tc': '56789000001', 'cinsiyet': 'E', 'yas': 30, 'grup_id': 'GRUP-50', 'iliski': 'Evli', 'tercih': '2 Kişilik', 'ozel': 'Deniz manzaralı, Engelli erişimi'})
-        guests.append({'isim': 'Seda', 'soyisim': 'GÜNEŞ', 'tc': '56789000002', 'cinsiyet': 'K', 'yas': 28, 'grup_id': 'GRUP-50', 'iliski': 'Evli', 'tercih': '2 Kişilik', 'ozel': 'Deniz manzaralı, Engelli erişimi'})
-        
-        # SENARYO 6: Tercih Dolu - 3 kişi 4'lük ister ama 3'lüğe yerleşir
-        guests.append({'isim': 'Osman', 'soyisim': 'POLAT', 'tc': '67890000001', 'cinsiyet': 'E', 'yas': 32, 'grup_id': 'GRUP-30', 'iliski': 'Arkadaş', 'tercih': '4 Kişilik', 'ozel': None})
-        guests.append({'isim': 'Yusuf', 'soyisim': 'ŞAHIN', 'tc': '67890000002', 'cinsiyet': 'E', 'yas': 33, 'grup_id': 'GRUP-30', 'iliski': 'Arkadaş', 'tercih': '4 Kişilik', 'ozel': None})
-        guests.append({'isim': 'Mustafa', 'soyisim': 'KOÇAK', 'tc': '67890000003', 'cinsiyet': 'E', 'yas': 31, 'grup_id': 'GRUP-30', 'iliski': 'Arkadaş', 'tercih': '4 Kişilik', 'ozel': None})
-        
-        # Kalan kişiler (Kapasite aşımı testi: 640 sınır)
-        tercih_listesi = ['2 Kişilik', '3 Kişilik', '4 Kişilik']
-        for idx in range(21, 1000):
-            guests.append({
-                'isim': 'Misafir' + str(idx),
-                'soyisim': 'SOYAD' + str(idx),
-                'tc': str(10000000000 + idx),
-                'cinsiyet': 'E' if idx % 2 == 0 else 'K',
-                'yas': 20 + (idx % 50),
-                'grup_id': 'GRUP-' + str(100 + (idx // 4)),
-                'iliski': 'Arkadaş',
-                'tercih': tercih_listesi[idx % 3],
-                'ozel': None
-            })
+    if not data or 'misafirler' not in data or len(data['misafirler']) == 0:
+        # Senaryo 1: 4 Kişilik Aile (Karışık Cinsiyet OK)
+        for i in range(1, 5):
+            guests.append({'isim': f'AileÜye{i}', 'soyisim': 'YILMAZ', 'tc': f'1111111110{i}', 'cinsiyet': 'E' if i%2==0 else 'K', 'yas': 40-i, 'grup_id': 'GRUP-1', 'iliski': 'Aile', 'tercih': '4 Kişilik', 'ozel': None})
+        # Senaryo 2: 4 Kişilik Arkadaş Grubu (Cinsiyet Ayrımı Şart - 2E 2K)
+        for i in range(1, 3):
+            guests.append({'isim': f'ErkekArk{i}', 'soyisim': 'KAYA', 'tc': f'2222222220{i}', 'cinsiyet': 'E', 'yas': 25, 'grup_id': 'GRUP-5', 'iliski': 'Arkadaş', 'tercih': '4 Kişilik', 'ozel': None})
+            guests.append({'isim': f'KadinArk{i}', 'soyisim': 'DEMİR', 'tc': f'2222222220{i+2}', 'cinsiyet': 'K', 'yas': 24, 'grup_id': 'GRUP-5', 'iliski': 'Arkadaş', 'tercih': '4 Kişilik', 'ozel': None})
+        # Senaryo 3: 5 Kişilik Erkek Grubu (Oda Dağıtma 4+1)
+        for i in range(1, 6):
+            guests.append({'isim': f'GrupÜye{i}', 'soyisim': 'ÇELİK', 'tc': f'3333333330{i}', 'cinsiyet': 'E', 'yas': 30, 'grup_id': 'GRUP-10', 'iliski': 'Arkadaş', 'tercih': '4 Kişilik', 'ozel': None})
+        # Senaryo 4: Özel İstekli Çift
+        guests.append({'isim': 'Cem', 'soyisim': 'GÜNEŞ', 'tc': '55555555501', 'cinsiyet': 'E', 'yas': 30, 'grup_id': 'GRUP-50', 'iliski': 'Evli', 'tercih': '2 Kişilik', 'ozel': 'Deniz manzaralı, Engelli erişimi'})
+        guests.append({'isim': 'Seda', 'soyisim': 'GÜNEŞ', 'tc': '55555555502', 'cinsiyet': 'K', 'yas': 28, 'grup_id': 'GRUP-50', 'iliski': 'Evli', 'tercih': '2 Kişilik', 'ozel': 'Deniz manzaralı, Engelli erişimi'})
+        # 1000 kişiye tamamla (Kapasite aşımı testi)
+        for i in range(len(guests), 1000):
+            guests.append({'isim': f'M{i}', 'soyisim': 'S', 'tc': str(90000000000+i), 'cinsiyet': 'E' if i%2==0 else 'K', 'yas': 20, 'grup_id': f'GRUP-{100+(i//2)}', 'iliski': 'Arkadaş', 'tercih': '2 Kişilik', 'ozel': None})
     else:
-        guests = list(data_list)
-    
-    # ========================================================================
-    # AŞAMA 3: YERLEŞTİRME ALGORİTMASI
-    # ========================================================================
+        guests = data['misafirler']
+
+    # 3. YERLEŞTİRME ALGORİTMASI
     waiting_list = []
+    # Gruplandır
+    groups = {}
+    for g in guests: 
+        groups.setdefault(g['grup_id'], []).append(g)
     
-    def can_room_together(g1, g2):
-        """İki misafir aynı odada kalabilir mi?"""
-        if g1['grup_id'] == g2['grup_id']:
-            if g1['cinsiyet'] != g2['cinsiyet']:
-                iliski = g1.get('iliski', 'Arkadaş')
-                if iliski in ['Aile', 'Evli', 'Nişanlı', 'Birlikte Kalabilir']:
-                    return True
-                return False
-            return True
-        return g1['cinsiyet'] == g2['cinsiyet']
-    
-    def can_add_to_room(guest, room):
-        """Misafir bu odaya eklenebilir mi?"""
-        if len(room['misafirler']) == 0:
-            return True
-        for existing in room['misafirler']:
-            if not can_room_together(guest, existing):
-                return False
-        return True
-    
-    def get_capacity_order(preferred):
-        """Tercih sırasına göre kapasite listesi"""
-        if preferred == '4 Kişilik':
-            return [4, 3, 2]
-        elif preferred == '3 Kişilik':
-            return [3, 4, 2]
-        else:
-            return [2, 3, 4]
-    
-    # Grupları oluştur
-    groups_dict = {}
-    for g in guests:
-        gid = g['grup_id']
-        if gid not in groups_dict:
-            groups_dict[gid] = []
-        groups_dict[gid].append(g)
-    
-    # Büyükten küçüğe sırala (optimizasyon)
-    sorted_groups = sorted(groups_dict.items(), key=lambda x: len(x[1]), reverse=True)
-    
-    # GRUP YERLEŞTİRME
-    for gid, members in sorted_groups:
-        if len(members) == 1:
-            continue
-        
-        group_size = len(members)
-        preferred = members[0].get('tercih', '2 Kişilik')
-        cap_order = get_capacity_order(preferred)
-        
-        placed = False
-        for cap in cap_order:
-            if placed:
-                break
-            for room in rooms:
-                if room['kapasite'] == cap and len(room['misafirler']) == 0:
-                    if group_size <= cap:
-                        can_place_all = True
-                        for m in members:
-                            if not can_add_to_room(m, room):
-                                can_place_all = False
-                                break
-                        
-                        if can_place_all:
-                            for m in members:
-                                room['misafirler'].append(m)
-                                ozel = m.get('ozel', None)
-                                if ozel is not None:
-                                    if 'Deniz' in str(ozel):
-                                        room['manzara'] = 'Deniz'
-                                    if 'Engelli' in str(ozel):
-                                        room['ozel_not'] = 'Engelli Erişimi Gerekli'
-                            placed = True
-                            break
-        
-        if not placed:
-            for m in members:
-                m_placed = False
-                preferred_m = m.get('tercih', '2 Kişilik')
-                cap_order_m = get_capacity_order(preferred_m)
-                for cap in cap_order_m:
-                    if m_placed:
-                        break
-                    for room in rooms:
-                        if room['kapasite'] == cap and len(room['misafirler']) < room['kapasite']:
-                            if can_add_to_room(m, room):
-                                room['misafirler'].append(m)
-                                ozel = m.get('ozel', None)
-                                if ozel is not None:
-                                    if 'Deniz' in str(ozel):
-                                        room['manzara'] = 'Deniz'
-                                    if 'Engelli' in str(ozel):
-                                        room['ozel_not'] = 'Engelli Erişimi Gerekli'
-                                m_placed = True
-                                break
-                if not m_placed:
-                    waiting_list.append(m)
-    
-    # TEK KİŞİ YERLEŞTİRME
-    for gid, members in sorted_groups:
-        if len(members) == 1:
-            guest = members[0]
-            preferred = guest.get('tercih', '2 Kişilik')
-            cap_order = get_capacity_order(preferred)
-            
-            placed = False
-            for cap in cap_order:
-                if placed:
-                    break
-                for room in rooms:
-                    if room['kapasite'] == cap and len(room['misafirler']) < room['kapasite']:
-                        if can_add_to_room(guest, room):
-                            room['misafirler'].append(guest)
-                            ozel = guest.get('ozel', None)
-                            if ozel is not None:
-                                if 'Deniz' in str(ozel):
-                                    room['manzara'] = 'Deniz'
-                                if 'Engelli' in str(ozel):
-                                    room['ozel_not'] = 'Engelli Erişimi Gerekli'
-                            placed = True
-                            break
-            
-            if not placed:
-                waiting_list.append(guest)
-    
-    # ========================================================================
-    # AŞAMA 4: EXCEL OLUŞTURMA
-    # ========================================================================
-    wb = openpyxl.Workbook()
+    # Kapasite Optimizasyonu: Önce büyük gruplar
+    sorted_gids = sorted(groups.keys(), key=lambda x: len(groups[x]), reverse=True)
+
+    def can_stay(g1, g2):
+        if g1['cinsiyet'] == g2['cinsiyet']: return True
+        return g1['iliski'] in ['Aile', 'Evli', 'Nişanlı', 'Birlikte Kalabilir']
+
+    for gid in sorted_gids:
+        mems = groups[gid]
+        # Grup içi cinsiyet/ilişki alt grupları oluştur
+        sub_groups = []
+        current_sub = []
+        for m in mems:
+            if not current_sub or can_stay(current_sub[0], m):
+                current_sub.append(m)
+            else:
+                sub_groups.append(current_sub)
+                current_sub = [m]
+        sub_groups.append(current_sub)
+
+        for sub in sub_groups:
+            while sub:
+                placed = False
+                # Tercih sırası: Tercih edilen -> 4 -> 3 -> 2
+                pref = sub[0].get('tercih', '2 Kişilik')
+                order = [pref, '4 Kişilik', '3 Kişilik', '2 Kişilik']
+                
+                for o_tip in order:
+                    for r in rooms:
+                        if r['tip'] == o_tip and len(r['misf']) == 0:
+                            take = min(len(sub), r['kap'])
+                            to_place = sub[:take]
+                            r['misf'].extend(to_place)
+                            if to_place[0].get('ozel'):
+                                if 'Deniz' in to_place[0]['ozel']: r['manzara'] = 'Deniz'
+                                if 'Engelli' in to_place[0]['ozel']: r['not'] = 'Engelli Erişimi Gerekli'
+                            sub = sub[take:]
+                            placed = True; break
+                    if placed: break
+                
+                if not placed: # Dolu odalara tekil eşleştirme (aynı cinsiyet/grup)
+                    for r in rooms:
+                        if len(r['misf']) > 0 and len(r['misf']) < r['kap']:
+                            if can_stay(r['misf'][0], sub[0]) and (r['misf'][0]['grup_id'] == sub[0]['grup_id'] or r['misf'][0]['cinsiyet'] == sub[0]['cinsiyet']):
+                                r['misf'].append(sub[0])
+                                sub = sub[1:]
+                                placed = True; break
+                    if not placed:
+                        for leftover in sub: waiting_list.append(leftover)
+                        sub = []
+
+    # 4. EXCEL ÜRETİMİ
+    wb = Workbook()
     ws = wb.active
     ws.title = "Oda Yerleşim Planı"
-    
-    headers = ['Satır Tipi', 'Oda No', 'Oda Tipi', 'Manzara', 'Özel Not (Oda)', 
-               'İsim', 'Soyisim', 'TC/Pasaport', 'Cinsiyet', 'Yaş', 'Grup ID', 
-               'İlişki Tipi', 'Oda Tercihi', 'Durum', 'Uyarı Açıklama']
+    headers = ["Satır Tipi", "Oda No", "Oda Tipi", "Manzara", "Özel Not (Oda)", "İsim", "Soyisim", "TC/Pasaport", "Cinsiyet", "Yaş", "Grup ID", "İlişki Tipi", "Oda Tercihi", "Durum", "Uyarı Açıklama"]
     ws.append(headers)
-    
-    header_fill = PatternFill(start_color='1F4E78', end_color='1F4E78', fill_type='solid')
-    header_font = Font(bold=True, color='FFFFFF')
-    oda_fill = PatternFill(start_color='B8CCE4', end_color='B8CCE4', fill_type='solid')
-    oda_font = Font(bold=True)
-    uyari_fill = PatternFill(start_color='FF0000', end_color='FF0000', fill_type='solid')
-    uyari_font = Font(bold=True, color='FFFFFF')
-    e_fill = PatternFill(start_color='CCEBFF', end_color='CCEBFF', fill_type='solid')
-    k_fill = PatternFill(start_color='FFCCFF', end_color='FFCCFF', fill_type='solid')
-    
-    for col_idx in range(1, len(headers) + 1):
-        cell = ws.cell(row=1, column=col_idx)
-        cell.fill = header_fill
-        cell.font = header_font
-        cell.alignment = Alignment(horizontal='center', vertical='center')
-    
-    for room in rooms:
-        if len(room['misafirler']) == 0:
-            continue
-        
-        ozel_not_val = room['ozel_not'] if room['ozel_not'] is not None else ''
-        oda_row = [
-            'ODA_BAŞLIK',
-            room['no'],
-            room['tip'],
-            room['manzara'],
-            ozel_not_val,
-            '', '', '', '', '', '', '', '', '', ''
-        ]
-        ws.append(oda_row)
-        
-        current_row = ws.max_row
-        for col_idx in range(1, 16):
-            cell = ws.cell(row=current_row, column=col_idx)
-            cell.fill = oda_fill
-            cell.font = oda_font
-        
-        ws.cell(row=current_row, column=2).alignment = Alignment(horizontal='center')
-        
-        for guest in room['misafirler']:
-            misafir_row = [
-                'MİSAFİR',
-                '', '', '', '',
-                guest.get('isim', ''),
-                guest.get('soyisim', ''),
-                guest.get('tc', ''),
-                guest.get('cinsiyet', ''),
-                guest.get('yas', ''),
-                guest.get('grup_id', ''),
-                guest.get('iliski', 'Arkadaş'),
-                guest.get('tercih', ''),
-                'Yerleştirildi',
-                ''
-            ]
-            ws.append(misafir_row)
-            
-            current_row = ws.max_row
-            if guest.get('cinsiyet', '') == 'E':
-                ws.cell(row=current_row, column=9).fill = e_fill
-            else:
-                ws.cell(row=current_row, column=9).fill = k_fill
-        
-        ws.append([''] * 15)
-    
-    for guest in waiting_list:
-        tercih_val = guest.get('tercih', '2 Kişilik')
-        uyari_aciklama = 'Oda bulunamadı - ' + tercih_val + ' ve diğer tüm oda tipleri dolu. Toplam kapasite 640 kişi aşıldı.'
-        uyari_row = [
-            'UYARI',
-            '', '', '', '',
-            guest.get('isim', ''),
-            guest.get('soyisim', ''),
-            guest.get('tc', ''),
-            guest.get('cinsiyet', ''),
-            guest.get('yas', ''),
-            guest.get('grup_id', ''),
-            guest.get('iliski', 'Arkadaş'),
-            tercih_val,
-            'Bekleme Listesi',
-            uyari_aciklama
-        ]
-        ws.append(uyari_row)
-        
-        current_row = ws.max_row
-        for col_idx in range(1, 16):
-            cell = ws.cell(row=current_row, column=col_idx)
-            cell.fill = uyari_fill
-            cell.font = uyari_font
-    
-    column_widths = [15, 10, 15, 12, 35, 15, 15, 15, 10, 8, 12, 18, 15, 18, 80]
-    col_letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O']
-    for idx in range(len(column_widths)):
-        ws.column_dimensions[col_letters[idx]].width = column_widths[idx]
-    
+
+    # Stiller
+    header_fill = PatternFill(start_color="1F4E78", end_color="1F4E78", fill_type="solid")
+    oda_fill = PatternFill(start_color="B8CCE4", end_color="B8CCE4", fill_type="solid")
+    uyari_fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+    white_bold = Font(color="FFFFFF", bold=True)
+    blue_font = Font(color="0000FF"); pink_font = Font(color="FF00FF")
+    border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+
+    for cell in ws[1]:
+        cell.fill = header_fill; cell.font = white_bold; cell.alignment = Alignment(horizontal='center')
+
+    for r in rooms:
+        if not r['misf']: continue
+        # Başlık
+        ws.append(["ODA_BAŞLIK", r['no'], r['tip'], r['manzara'], r['not'], "", "", "", "", "", "", "", "", "Yerleştirildi", ""])
+        for cell in ws[ws.max_row]: cell.fill = oda_fill; cell.font = Font(bold=True); cell.border = border
+        # Misafirler
+        for m in r['misf']:
+            mask_tc = "*******" + str(m['tc'])[-4:]
+            ws.append(["MİSAFİR", "", "", "", "", m['isim'], m['soyisim'].upper(), mask_tc, m['cinsiyet'], m['yas'], m['grup_id'], m['iliski'], m['tercih'], "Yerleştirildi", ""])
+            for cell in ws[ws.max_row]: cell.border = border
+            ws.cell(ws.max_row, 9).font = blue_font if m['cinsiyet'] == 'E' else pink_font
+        ws.append([""] * 15)
+
+    if waiting_list:
+        for m in waiting_list:
+            ws.append(["UYARI", "", "", "", "", m['isim'], m['soyisim'].upper(), "", m['cinsiyet'], m['yas'], m['grup_id'], m['iliski'], m['tercih'], "Bekleme Listesi", "Oda Kapasitesi Yetersiz"])
+            for cell in ws[ws.max_row]: cell.fill = uyari_fill; cell.font = white_bold; cell.border = border
+
+    for col in ws.columns: ws.column_dimensions[col[0].column_letter].width = 16
     wb.save(output_path)
     return output_path
