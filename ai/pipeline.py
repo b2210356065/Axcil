@@ -442,9 +442,9 @@ Sadece Python kodu uret (aciklama yok):
         Uretilen kodu guvenlik tehditleri icin tara.
 
         Yasakli pattern'ler:
-        - eval, exec
-        - subprocess, os.system
-        - __import__
+        - eval, exec, subprocess, os.system, __import__
+        - sys, builtins, time.sleep, inspect (YENI - 2026)
+        - concurrent.futures, asyncio, cffi (YENI - 2026)
         """
         dangerous_patterns = [
             "eval(",
@@ -453,6 +453,16 @@ Sadece Python kodu uret (aciklama yok):
             "os.system",
             "__import__",
             "popen(",
+            # NEW: Critical additions (April 2026 security audit)
+            "sys.",
+            "sys ",
+            "builtins.",
+            "time.sleep",
+            "inspect.",
+            "concurrent.futures",
+            "concurrent.",
+            "asyncio.",
+            "cffi.",
         ]
 
         code_lower = code.lower()

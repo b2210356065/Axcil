@@ -53,6 +53,38 @@ class CodeSandbox:
         "xlsxwriter",
         "xlrd",
         "xlwt",
+
+        # ============================================
+        # NEWLY ADDED (April 2026 Security Audit)
+        # ============================================
+
+        # Interpreter control and sandbox escape
+        "sys",          # Can exit interpreter (sys.exit()), modify sys.modules,
+                        # manipulate sys.path to load malicious code, access stdin/stdout
+
+        "builtins",     # Can override core functions like open(), __import__(), eval(),
+                        # enabling complete sandbox escape. Critical threat.
+
+        # C interoperability (similar to ctypes)
+        "cffi",         # C Foreign Function Interface - can call arbitrary C functions,
+                        # load shared libraries, bypass Python security. Same risk as ctypes.
+
+        # Parallelism and resource exhaustion
+        "concurrent",   # concurrent.futures can create thread/process pools for fork bombs
+                        # and resource exhaustion attacks
+
+        "asyncio",      # Async event loops can be abused for resource exhaustion,
+                        # difficult to timeout, can block sandbox indefinitely
+
+        # Timing attacks and DoS
+        "time",         # time.sleep() enables DoS attacks (infinite sleep, tie up workers).
+                        # NOTE: datetime module provides date/time functionality safely.
+                        # time.time() is NOT needed in AI-generated code (adapters measure
+                        # latency outside sandbox)
+
+        # Runtime introspection
+        "inspect",      # Can inspect runtime internals, read source code, access frame
+                        # objects, potentially find secrets in memory or bypass security
     }
 
     # Yasaklı pattern'ler (tehlikeli kod kalıpları)
@@ -72,6 +104,14 @@ class CodeSandbox:
         r"file\s*\(",
         r"input\s*\(",  # Kullanıcı girdisi yasak
         r"raw_input\s*\(",
+
+        # Newly added patterns (April 2026 Security Audit)
+        r"\bsys\.",           # Match sys. with word boundary
+        r"time\.sleep",       # Block sleep even if time somehow gets imported
+        r"inspect\.",         # Block any inspect usage
+        r"\bbuiltins\.",      # Block builtins access with word boundary
+        r"concurrent\.futures",  # Block futures
+        r"asyncio\.",         # Block asyncio usage
     ]
 
     # Yasaklı AST node tipleri

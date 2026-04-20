@@ -80,6 +80,15 @@ ZORUNLU KURALLAR:
    - input(), raw_input()
    - globals(), locals() degistirme
    - socket, http, urllib (ag islemleri)
+
+   YENI GUVENLIK KISITLAMALARI (2026):
+   - sys (sistem kontrolu - sys.exit(), sys.modules - ASLA KULLANMA)
+   - builtins (temel fonksiyonlari degistiremezsin)
+   - ctypes, cffi (C kutuphaneleri - guvenlik riski)
+   - threading, multiprocessing, concurrent.futures, asyncio (paralel islemler yasak)
+   - time modulu (time.sleep() yasak - tarih/saat icin datetime kullan)
+   - inspect (kod introspeksiyonu yasak)
+
    ONEMLI: Tum veri isleme saf Python ile yapilmali (list, dict, for).
    pandas/numpy YOKTUR — kullanirsan kod calismaz!
 
@@ -275,7 +284,7 @@ Formulu uret:
 - Turkce sayi formatlari: "1.234,56" -> 1234.56
 - Turkce tarih formatlari: "15.03.2025" -> date(2025, 3, 15)
 - Validation: Donusturulen veri hedef formata uygun mu kontrol et
-- YASAK: eval, exec, subprocess, __import__
+- YASAK: eval, exec, subprocess, __import__, sys, builtins, time.sleep, inspect, concurrent, asyncio, cffi
 </requirements>
 
 Python fonksiyonunu uret:
@@ -313,6 +322,12 @@ KESINLIKLE YASAK:
 - __import__(), importlib
 - open() (openpyxl wb.save haric)
 - Ag islemleri (socket, http, urllib)
+
+YENI GUVENLIK KISITLAMALARI (2026):
+- sys, builtins, ctypes, cffi
+- threading, multiprocessing, concurrent.futures, asyncio
+- time modulu (time.sleep yasak - datetime kullan)
+- inspect
 </safety_constraints>
 
 {language} kodunu uret:
@@ -647,6 +662,14 @@ KESİNLİKLE YASAK — bunları ASLA kullanma:
 - input(), raw_input()
 - globals(), locals() değiştirme
 - socket, http, urllib
+
+YENİ GÜVENLİK KISITLAMALARI (2026):
+- sys (sistem kontrolü - sys.exit(), sys.modules - ASLA KULLANMA)
+- builtins (temel fonksiyonları değiştiremezsin)
+- ctypes, cffi (C kütüphaneleri - güvenlik riski)
+- threading, multiprocessing, concurrent.futures, asyncio (paralel işlemler yasak)
+- time modülü (time.sleep() yasak - tarih/saat için datetime kullan)
+- inspect (kod introspeksiyonu yasak)
 
 ÖNEMLİ: Tüm veri işleme saf Python ile yapılmalı (list, dict, for döngüsü).
 pandas, numpy gibi kütüphaneler YOKTUR — kullanırsan kod çalışmaz!

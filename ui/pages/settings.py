@@ -42,10 +42,7 @@ def show_settings_page():
 
         with col2:
             gemini_options = [
-                "models/gemini-1.5-flash",  # ✅ STABİL - Önerilen
-                "models/gemini-2.0-flash",  # ⚠️ Quota dolmuş olabilir
-                "models/gemini-3.1-flash-live-preview",  # ⚠️ Deneysel
-                "models/gemini-2.5-flash-preview-05-20"  # ⚠️ Preview
+                "models/gemini-3-flash-preview"  # ✅ En yeni, stabil model (Gemini 3.0)
             ]
             gemini_index = gemini_options.index(config.gemini_model) if config.gemini_model in gemini_options else 0
             gemini_model = st.selectbox(
