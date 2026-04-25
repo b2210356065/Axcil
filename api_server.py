@@ -78,7 +78,7 @@ class ConfigRequest(BaseModel):
     gemini_key: Optional[str] = None
     claude_key: Optional[str] = None
     openai_key: Optional[str] = None
-    gemini_model: str = "models/gemini-2.0-flash-preview"
+    gemini_model: str = "models/gemini-3-flash-preview"
     claude_model: str = "claude-sonnet-4-20250514"
     openai_model: str = "gpt-4o-mini"
     confidence_high: float = 0.90
